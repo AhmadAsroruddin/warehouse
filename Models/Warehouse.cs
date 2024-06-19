@@ -1,4 +1,4 @@
-﻿namespace warehouse;
+﻿namespace warehouse.Models;
 
 public class Warehouse
 {
