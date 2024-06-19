@@ -87,6 +87,6 @@ public class WarehouseController : ControllerBase
 
         await _repository.DeleteWarehouse(id);
 
-        return NoContent();
+        return Ok("warehouse with ID "+id+" deleted successfully");
     }
 }
