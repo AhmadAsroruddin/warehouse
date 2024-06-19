@@ -3,6 +3,7 @@ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using warehouse;
 using warehouse.Models;
 
 public class ItemRepository
@@ -111,25 +112,78 @@ public class ItemRepository
         }
     }
 
-    public async Task<IEnumerable<Warehouse>> GetWarehouses()
+    public async Task<WarehouseDropdownDTO> GetItemsByWarehouseId(int warehouseId)
     {
         using (var conn = new NpgsqlConnection(_connectionString))
         {
             await conn.OpenAsync();
-            var cmd = new NpgsqlCommand("SELECT kode_gudang, nama_gudang FROM Warehouse", conn);
+            var cmd = new NpgsqlCommand("SELECT w.kode_gudang, w.nama_gudang, i.kode_barang, i.nama_barang, i.harga, i.jumlah, i.expired " +
+                                        "FROM Warehouse w " +
+                                        "JOIN Item i ON w.kode_gudang = i.kode_gudang " +
+                                        "WHERE w.kode_gudang = @warehouseId", conn);
+            cmd.Parameters.AddWithValue("warehouseId", warehouseId);
             var reader = await cmd.ExecuteReaderAsync();
 
-            var warehouses = new List<Warehouse>();
+            WarehouseDropdownDTO warehouseItemDTO = null;
+            List<Item> items = new List<Item>();
+
             while (await reader.ReadAsync())
             {
-                warehouses.Add(new Warehouse
+                if (warehouseItemDTO == null)
                 {
-                    KodeGudang = reader.GetInt32(0),
-                    NamaGudang = reader.GetString(1)
+                    warehouseItemDTO = new WarehouseDropdownDTO
+                    {
+                        KodeGudang = reader.GetInt32(0),
+                        NamaGudang = reader.GetString(1),
+                        Items = new List<Item>()
+                    };
+                }
+
+                items.Add(new Item
+                {
+                    KodeBarang = reader.GetInt32(2),
+                    NamaBarang = reader.GetString(3),
+                    Harga = reader.GetDecimal(4),
+                    Jumlah = reader.GetInt32(5),
+                    Expired = reader.GetDateTime(6),
+                    KodeGudang = warehouseItemDTO.KodeGudang
                 });
             }
 
-            return warehouses;
+            if (warehouseItemDTO != null)
+            {
+                warehouseItemDTO.Items = items;
+            }
+
+            return warehouseItemDTO;
+        }
+    }
+
+    public async Task<IEnumerable<Item>> GetItemsByWarehouseAndExpiredDate(int kodeGudang, DateTime expiredDate)
+    {
+        using (var conn = new NpgsqlConnection(_connectionString))
+        {
+            await conn.OpenAsync();
+            var cmd = new NpgsqlCommand("SELECT * FROM Item WHERE kode_gudang = @kodeGudang AND expired <= @expiredDate", conn);
+            cmd.Parameters.AddWithValue("kodeGudang", kodeGudang);
+            cmd.Parameters.AddWithValue("expiredDate", expiredDate);
+            var reader = await cmd.ExecuteReaderAsync();
+
+            var items = new List<Item>();
+            while (await reader.ReadAsync())
+            {
+                items.Add(new Item
+                {
+                    KodeBarang = reader.GetInt32(0),
+                    NamaBarang = reader.GetString(1),
+                    Harga = reader.GetDecimal(2),
+                    Jumlah = reader.GetInt32(3),
+                    Expired = reader.GetDateTime(4),
+                    KodeGudang = reader.GetInt32(5)
+                });
+            }
+
+            return items;
         }
     }
 }

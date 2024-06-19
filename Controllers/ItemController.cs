@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using warehouse;
 using warehouse.Models;
 
 [Route("api/[controller]")]
@@ -75,10 +76,24 @@ public class ItemController : ControllerBase
         return NoContent();
     }
 
-    // GET: api/item/warehouses
-    [HttpGet("warehouses")]
-    public async Task<IEnumerable<Warehouse>> GetWarehouses()
+    // GET: api/item/itemsbywarehouse/1
+    [HttpGet("itemsbywarehouse/{warehouseId}")]
+    public async Task<ActionResult<WarehouseDropdownDTO>> GetItemsByWarehouseId(int warehouseId)
     {
-        return await _itemRepository.GetWarehouses();
+        var warehouseItemDTO = await _itemRepository.GetItemsByWarehouseId(warehouseId);
+
+        if (warehouseItemDTO == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(warehouseItemDTO);
+    }
+
+    // GET: api/item/warehouseitems/1/2023-01-01
+    [HttpGet("warehouseitems/{kodeGudang}/{expiredDate}")]
+    public async Task<IEnumerable<Item>> GetItemsByWarehouseAndExpiredDate(int kodeGudang, DateTime expiredDate)
+    {
+        return await _itemRepository.GetItemsByWarehouseAndExpiredDate(kodeGudang, expiredDate);
     }
 }
