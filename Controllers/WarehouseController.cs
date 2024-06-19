@@ -72,7 +72,7 @@ public class WarehouseController : ControllerBase
 
         await _repository.UpdateWarehouse(warehouse);
 
-        return NoContent();
+        return Ok("Data Updated Successfully");
     }
 
     // DELETE api/warehouse/5
