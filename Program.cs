@@ -6,6 +6,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddScoped<WarehouseRepository>();
+builder.Services.AddScoped<ItemRepository>();
 
 var app = builder.Build();
 app.MapControllers();

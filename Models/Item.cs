@@ -7,6 +7,6 @@ public class Item
     public string NamaBarang { get; set; }
     public decimal Harga { get; set; }
     public int Jumlah { get; set; }
-    public DateTime expired { get; set; }
+    public DateTime Expired { get; set; }
     public int KodeGudang { get; set; }
 }
